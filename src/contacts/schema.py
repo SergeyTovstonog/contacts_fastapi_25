@@ -1,5 +1,7 @@
-from pydantic import BaseModel, EmailStr
 from datetime import date
+
+from pydantic import BaseModel, EmailStr
+
 
 class Contact(BaseModel):
     first_name: str
@@ -9,6 +11,17 @@ class Contact(BaseModel):
     birthday: date
     additional_info: str | None = None
 
-class ContactResponse(BaseModel):
-    first_name: str
-    last_name: str
+
+class ContactResponse(Contact):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class ContactCreate(Contact):
+    pass
+
+
+class ContactUpdate(Contact):
+    pass
