@@ -1,8 +1,8 @@
 from sqlalchemy import select
 
-from src.auth.models import User, Role
+from src.auth.models import Role, User
 from src.auth.pass_utils import get_password_hash
-from src.auth.schemas import UserCreate, RoleEnum
+from src.auth.schemas import RoleEnum, UserCreate
 
 
 class UserRepository:
@@ -18,6 +18,7 @@ class UserRepository:
             hashed_password=hashed_password,
             email=user_create.email,
             role_id=user_role.id,
+            is_active=False,
         )
         self.session.add(new_user)
         await self.session.commit()
@@ -33,6 +34,12 @@ class UserRepository:
         query = select(User).where(User.username == username)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
+
+    async def activate_user(self, user: User):
+        user.is_active = True
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
 
 
 class RoleRepository:

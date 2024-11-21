@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config.db import get_db
 from src.auth.models import User
 from src.auth.schemas import RoleEnum
-from src.auth.utils import get_current_user, RoleChecker
+from src.auth.utils import RoleChecker, get_current_user
 from src.contacts.repos import ContactRepository
 from src.contacts.schema import Contact, ContactCreate, ContactResponse, ContactUpdate
 

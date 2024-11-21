@@ -1,22 +1,42 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.db import get_db
 from config.general import settings
-from jose import jwt, JWTError
-
 from src.auth.models import User
 from src.auth.repo import UserRepository
-from src.auth.schemas import TokenData, RoleEnum
+from src.auth.schemas import RoleEnum, TokenData
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+VERIFICATION_TOKEN_EXPIRE_HOURS = 24
 
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+
+def create_verification_token(email: str) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(
+        hours=VERIFICATION_TOKEN_EXPIRE_HOURS
+    )
+    to_encode = {"exp": expire, "sub": email}
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def decode_verification_token(token: str) -> str | None:
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+        return email
+    except JWTError:
+        return None
 
 
 def create_access_token(data: dict):
