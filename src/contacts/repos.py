@@ -1,5 +1,7 @@
+from fastapi_cache.decorator import cache
 from sqlalchemy import select
 
+from config.cache import custom_repo_key_builder
 from src.contacts.models import Contact
 from src.contacts.schema import ContactCreate, ContactUpdate
 
@@ -9,8 +11,9 @@ class ContactRepository:
     def __init__(self, session):
         self.session = session
 
+    @cache(expire=600, namespace="get_contacts_repo", key_builder=custom_repo_key_builder)
     async def get_contacts(
-        self, owner_id, skip: int = 0, limit: int = 10
+        self, owner_id: int, skip: int = 0, limit: int = 10
     ) -> list[Contact]:
         query = (
             select(Contact)

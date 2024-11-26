@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi_cache import JsonCoder, FastAPICache
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config.cache import invalidate_get_contacts_repo_cache
 from config.db import get_db
 from src.auth.models import User
 from src.auth.schemas import RoleEnum
@@ -27,6 +30,7 @@ async def create_contact(
 ):
 
     contact_repo = ContactRepository(db)
+    await invalidate_get_contacts_repo_cache(user.id)
     return await contact_repo.create_contact(contact, user.id)
 
 
@@ -37,7 +41,7 @@ async def create_contact(
 async def get_contacts(
     skip: int = 0,
     limit: int = 10,
-    user: User = Depends(RoleChecker([RoleEnum.USER])),
+    user: User = Depends(RoleChecker([RoleEnum.USER, RoleEnum.ADMIN])),
     db: AsyncSession = Depends(get_db),
 ):
     contact_repo = ContactRepository(db)
@@ -54,12 +58,11 @@ async def search_contacts(
     contact_repo = ContactRepository(db)
     return await contact_repo.search_contacts(q, user.id)
 
-
 @router.get("/{contact_id}", response_model=ContactResponse)
 async def get_contact(
     contact_id: int,
     db: AsyncSession = Depends(get_db),
-    user: User = Depends(RoleChecker([RoleEnum.USER])),
+    user: User = Depends(RoleChecker([RoleEnum.USER, RoleEnum.ADMIN])),
 ):
 
     contact_repo = ContactRepository(db)
@@ -68,6 +71,7 @@ async def get_contact(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
         )
+    await invalidate_get_contacts_repo_cache()
     return contact
 
 
@@ -75,7 +79,7 @@ async def get_contact(
 async def update_contact(
     contact_id: int,
     contact_update: ContactUpdate,
-    user: User = Depends(RoleChecker([RoleEnum.USER])),
+    user: User = Depends(RoleChecker([RoleEnum.USER, RoleEnum.ADMIN])),
     db: AsyncSession = Depends(get_db),
 ):
     contact_repo = ContactRepository(db)
@@ -84,7 +88,8 @@ async def update_contact(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
         )
-    return await contact_repo.update_contact(contact_id, contact_update)
+    await invalidate_get_contacts_repo_cache(user.id)
+    return await contact_repo.update_contact(contact_id, contact_update, user.id)
 
 
 @router.delete("/{contact_id}")
@@ -100,6 +105,7 @@ async def delete_contact(
             status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
         )
     await contact_repo.delete_contact(contact_id)
+    await invalidate_get_contacts_repo_cache(user.id)
     return {"detail": "Contact deleted"}
 
 

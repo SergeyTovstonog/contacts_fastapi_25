@@ -19,10 +19,10 @@ bcrypt = "^4.2.0"
 python-jose = "^3.3.0"
 fastapi-mail = "^1.4.1"
 fastapi-cache2 = "^0.2.2"
-aioredis = "^2.0.1"
 setuptools = "^75.5.0"
 asyncio = "^3.4.3"
 redis = "^5.2.0"
+uvicorn = "^0.32.1"
 
 
 [build-system]

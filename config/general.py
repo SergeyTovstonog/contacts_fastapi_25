@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     mail_from: str = "admin@25web.com"
     mail_port: int = 1025
     mail_server: str = "localhost"
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = "redis://redis:6379"
 
     class Config:
         env_file = ".env"
