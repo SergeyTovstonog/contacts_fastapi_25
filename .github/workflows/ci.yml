@@ -71,6 +71,7 @@ jobs:
       id-token: write
     env:
       DATABASE_URL: postgresql+asyncpg://${{ secrets.DO_PG_USER }}:${{ secrets.DO_PG_PASSWORD }}@${{ secrets.DO_PG_HOST }}:${{ secrets.DO_PG_PORT }}/${{ secrets.DO_PG_DB }}
+      DATABASE_TEST_URL: postgresql+asyncpg://${{ secrets.DO_PG_USER }}:${{ secrets.DO_PG_PASSWORD }}@${{ secrets.DO_PG_HOST }}:${{ secrets.DO_PG_PORT }}/${{ secrets.DO_PG_DB }}_test
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
     steps:
       - name: Checkout repository
