@@ -7,4 +7,4 @@ COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-dev --no-root
 COPY . .
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
