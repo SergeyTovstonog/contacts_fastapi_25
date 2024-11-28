@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test_user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost/test_db
+      DATABASE_TEST_URL: postgresql+asyncpg://test_user:test_password@localhost/test_db
+      SECRET_KEY: supersecretkey
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install --upgrade pip
+        pip install poetry
+        poetry install --no-dev --no-root
+        poetry add pytest pytest-asyncio pytest-faker pytest-cov
+    - name: Wait for Postgres
+      run: |
+        while ! pg_isready -h localhost -p 5432 -U test_user -d test_db; do
+          sleep 1
+        done
+    - name: Run Alembic migrations for test DB
+      run: |
+        source .venv/bin/activate
+        alembic upgrade head
+    - name: Run tests
+      run: |
+        source .venv/bin/activate
+        pytest --cov
+#  build-push-deploy-image:
+#    runs-on: ubuntu-latest
+#    needs: test
+#    permissions:
+#      contents: read
+#      packages: write
+#      id-token: write
+#    env:
+#      DATABASE_URL: postgresql+asyncpg://${{ secrets.DO_PG_USER }}:${{ secrets.DO_PG_PASSWORD }}@${{ secrets.DO_PG_HOST }}:${{ secrets.DO_PG_PORT }}/${{ secrets.DO_PG_DB }}
+#      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#      - name: Log in to the Container registry
+#        uses: docker/login-action@v3.3.0
+#        with:
+#          username: '${{ secrets.DOCKER_USERNAME }}'
+#          password: '${{ secrets.DOCKER_PASSWORD }}'
+#      - name: Build and push Docker image
+#        id: push
+#        uses: docker/build-push-action@v6.5.0
+#        with:
+#          context: .
+#          push: true
+#          tags: '${{ secrets.DOCKER_IMAGE }}:latest'
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.12'
+#      - name: Install dependencies
+#        run: |
+#          python -m venv .venv
+#          source .venv/bin/activate
+#          pip install --upgrade pip
+#          pip install sqlalchemy alembic asyncpg pydantic pydantic-settings pydantic[email]
+#      - name: Run Alembic migrations for production DB
+#        run: |
+#          source .venv/bin/activate
+#          alembic upgrade head
+#      - name: Deploy the app
+#        uses: digitalocean/app_action/deploy@v2
+#        env:
+#          SAMPLE_DIGEST: ${{ steps.push.outputs.digest }}
+#        with:
+#          token: ${{ secrets.DO_API_TOKEN }}
+
+
