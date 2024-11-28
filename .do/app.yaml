@@ -20,7 +20,7 @@ services:
       digest: ${SAMPLE_DIGEST}
       registry: sergeytovstonog
       registry_type: DOCKER_HUB
-      repository: fastapi-contacts
+      repository: fastapi-contacts-25
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
     name: fastapi-contacts-2811
