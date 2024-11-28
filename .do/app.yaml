@@ -15,7 +15,7 @@ services:
     - key: SECRET_KEY
       scope: RUN_AND_BUILD_TIME
       value: "${SECRET_KEY}"
-    http_port: 80
+    http_port: 8000
     image:
       digest: ${SAMPLE_DIGEST}
       registry: sergeytovstonog
