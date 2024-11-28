@@ -71,7 +71,6 @@ async def get_contact(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
         )
-    await invalidate_get_contacts_repo_cache()
     return contact
 
 

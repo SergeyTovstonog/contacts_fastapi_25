@@ -1,7 +1,7 @@
 ingress:
   rules:
   - component:
-      name: fastapi-contacts-0608
+      name: fastapi-contacts-2811
     match:
       path:
         prefix: /
@@ -23,4 +23,4 @@ services:
       repository: fastapi-contacts
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
-    name: fastapi-contacts-0608
+    name: fastapi-contacts-2811

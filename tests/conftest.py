@@ -82,6 +82,7 @@ async def test_user(db_session, faker, user_role, user_password):
     await db_session.refresh(user)
     return user
 
+@pytest_asyncio.fixture(scope="function")
 async def auth_header(test_user: User):
     access_token = create_access_token({"sub": test_user.username})
     refresh_token = create_refresh_token({"sub": test_user.username})
